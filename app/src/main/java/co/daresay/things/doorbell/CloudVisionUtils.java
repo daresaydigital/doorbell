@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.androidthings.doorbell;
+package co.daresay.things.doorbell;
 
 import android.util.Log;
 
@@ -39,7 +39,7 @@ import java.util.Map;
 public class CloudVisionUtils {
     public static final String TAG = CloudVisionUtils.class.getSimpleName();
 
-    private static final String CLOUD_VISION_API_KEY = "<ENTER VISION API KEY>";
+    private static final String CLOUD_VISION_API_KEY = "AIzaSyAA24_jyN33yJ2BDYY1OSLPaj1JEBRkadk";
 
     private static final String LABEL_DETECTION = "LABEL_DETECTION";
 

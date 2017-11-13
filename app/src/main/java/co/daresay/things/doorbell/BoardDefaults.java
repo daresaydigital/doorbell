@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.androidthings.doorbell;
+package co.daresay.things.doorbell;
 
 import android.os.Build;
 

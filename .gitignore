@@ -5,3 +5,7 @@ local.properties
 .DS_Store
 build
 **/google-services.json
+companionApp/src/main/res/values/secret_strings.xml
+
+server/functions/node_modules
+package-lock.json

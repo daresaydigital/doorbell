@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.androidthings.doorbell;
+package co.daresay.things.doorbell;
 
 import android.Manifest;
 import android.app.Activity;
@@ -26,12 +26,16 @@ import android.os.HandlerThread;
 import android.util.Base64;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.widget.TextView;
 
 import com.google.android.things.contrib.driver.button.Button;
 import com.google.android.things.contrib.driver.button.ButtonInputDriver;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -72,11 +76,22 @@ public class DoorbellActivity extends Activity {
      * An additional thread for running Cloud tasks that shouldn't block the UI.
      */
     private HandlerThread mCloudThread;
+    private boolean first = true;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "Doorbell Activity created.");
+        setContentView(R.layout.activity_main);
+
+        mDatabase = FirebaseDatabase.getInstance();
+
+        TextView textViewIp = (TextView) findViewById(R.id.textIp);
+        String deviceIpAddress = new IPUtil(this).getDeviceIpAddress();
+        textViewIp.setText(deviceIpAddress);
+        logIp(deviceIpAddress);
+
+        listenForConnections();
 
         // We need permission to access the camera
         if (checkSelfPermission(Manifest.permission.CAMERA)
@@ -85,8 +100,6 @@ public class DoorbellActivity extends Activity {
             Log.d(TAG, "No permission");
             return;
         }
-
-        mDatabase = FirebaseDatabase.getInstance();
 
         // Creates new handlers and associated threads for camera and networking operations.
         mCameraThread = new HandlerThread("CameraBackground");
@@ -103,6 +116,30 @@ public class DoorbellActivity extends Activity {
         // Camera code is complicated, so we've shoved it all in this closet class for you.
         mCamera = DoorbellCamera.getInstance();
         mCamera.initializeCamera(this, mCameraHandler, mOnImageAvailableListener);
+    }
+
+    private void listenForConnections() {
+        final DatabaseReference connections = mDatabase.getReference("connections");
+        connections.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(!first) {
+                    mCamera.takePicture();
+                }
+                first = false;
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void logIp(String deviceIpAddress) {
+        final DatabaseReference ips = mDatabase.getReference("ips").push();
+        ips.child("timestamp").setValue(ServerValue.TIMESTAMP);
+        ips.child("ip").setValue(deviceIpAddress);
     }
 
     private void initPIO() {
